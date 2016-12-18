@@ -33,8 +33,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f7xx_hal.h"
+#include "filter_sample.h"
 
-#include "math.h"
+#include <stdlib.h> // For malloc/free
+
+#define ARM_MATH_CM7	// Use ARM Cortex M7
+#define __FPU_PRESENT 1		// Does this device have a floating point unit?
+#include <arm_math.h>	// Include CMSIS header
+#include <cmsis_gcc.h>
 
 /* USER CODE BEGIN Includes */
 
@@ -49,8 +55,6 @@ TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
-#define frec (10)
 
 /* USER CODE END PV */
 
@@ -69,6 +73,10 @@ static void MX_TIM6_Init(void);
 
 /* USER CODE BEGIN 0 */
 
+filter_sampleType * filter;
+float fin, fout;
+
+
 /* USER CODE END 0 */
 
 int main(void)
@@ -81,8 +89,7 @@ int main(void)
   /* MCU Configuration----------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-
-	HAL_Init();
+  HAL_Init();
 
   /* Configure the system clock */
   SystemClock_Config();
@@ -94,20 +101,24 @@ int main(void)
   MX_TIM6_Init();
 
   /* USER CODE BEGIN 2 */
-  double out[frec];
-  double out_t1[frec];
-  double out_t2[frec];
+
+  filter = filter_sample_create();
 
   HAL_DAC_Start(&hdac,DAC_CHANNEL_1);
+  HAL_ADC_Start_IT(&hadc1);
 
-  //Generate sine vector
+  //Generate sine vector of frec points
 
-  for(uint32_t i=0; i<(frec); i++)
+  double * generate_sine(int poins)
   {
-	out_t1[i] = ((3.14159*2*((double)i+1)) / (frec));
-	out_t2[i] = sin(out_t1[i]);
-	out[i] = (	out_t2[i] + 1	);
+	  double *result = (double *)malloc( sizeof( double ) * poins );	// Allocate memory for the object
+	  for(uint32_t i=0; i<(poins); i++)
+	  {
+		  result[i] = (sin(((3.14159*2*((double)i+1)) / (poins))) + 1);
+	  }
+	  return result;
   }
+
 
   /* USER CODE END 2 */
 
@@ -116,15 +127,25 @@ int main(void)
   while (1)
   {
   /* USER CODE END WHILE */
+
   /* USER CODE BEGIN 3 */
 
-	  for(uint32_t i=0; i<(frec); i++)
-	  {
-		  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R,(uint32_t)2000*out[i]);
-		  HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
-	  }
+//	  for(uint32_t i=0; i<(frec); i++)
+//	  {
+//		  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R,(uint32_t)2000*out[i]);
+//		  HAL_GPIO_TogglePin(GPIOB, LD3_Pin);
+//		  HAL_GPIO_Write(GPIOB, LD3_Pin, RESET);
+//
+//	  }
 
-	  HAL_GPIO_TogglePin(GPIOB, LD3_Pin);
+	for(uint32_t i=0; i < 100000; i++)
+	{
+
+
+
+	}
+
+	HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
 
   }
   /* USER CODE END 3 */
@@ -153,7 +174,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 200;
+  RCC_OscInitStruct.PLL.PLLN = 216;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -177,7 +198,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_6) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
   {
     Error_Handler();
   }
@@ -203,10 +224,10 @@ static void MX_ADC1_Init(void)
     /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
     */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV8;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = DISABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -220,9 +241,9 @@ static void MX_ADC1_Init(void)
 
     /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
     */
-  sConfig.Channel = ADC_CHANNEL_0;
+  sConfig.Channel = ADC_CHANNEL_3;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_56CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -404,6 +425,18 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+{
+
+	HAL_GPIO_WritePin(GPIOB, LD3_Pin, SET);
+	fin = (float) HAL_ADC_GetValue(hadc);
+	filter_sample_filterBlock(filter, &fin, &fout, 1);
+	//HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R,HAL_ADC_GetValue(hadc));
+	HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R, (uint32_t)(fout + 2024));
+	HAL_GPIO_WritePin(GPIOB, LD3_Pin, RESET);
+
+}
 
 /* USER CODE END 4 */
 

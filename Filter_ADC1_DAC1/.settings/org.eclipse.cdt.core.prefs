@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+environment/project/com.atollic.truestudio.exe.debug.1518366166/LD_LIBRARY_PATH/delimiter=;
+environment/project/com.atollic.truestudio.exe.debug.1518366166/LD_LIBRARY_PATH/operation=append
+environment/project/com.atollic.truestudio.exe.debug.1518366166/LD_LIBRARY_PATH/value=C\:\\Users\\alienBot\\STM32Cube\\Repository\\STM32Cube_FW_F7_V1.5.1\\Drivers\\CMSIS\\Lib\\GCC
+environment/project/com.atollic.truestudio.exe.debug.1518366166/append=true
+environment/project/com.atollic.truestudio.exe.debug.1518366166/appendContributed=true

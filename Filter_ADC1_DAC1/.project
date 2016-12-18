@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
 	<name>Filter_ADC1_DAC1</name>
-	<comment />
+	<comment></comment>
 	<projects>
 	</projects>
 	<buildSpec>
@@ -15,7 +15,7 @@
 				</dictionary>
 				<dictionary>
 					<key>?name?</key>
-					<value />
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.append_environment</key>
@@ -23,7 +23,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value />
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -70,11 +70,18 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name />
-			<type />
-			<location />
-		</link>
-	</linkedResources>
+	<variableList>
+		<variable>
+			<name>CMSIS</name>
+			<value>file:/C:/Users/alienBot/STM32Cube/Repository/STM32Cube_FW_F7_V1.5.1/Drivers/CMSIS/Lib/ARM</value>
+		</variable>
+		<variable>
+			<name>CMSISa</name>
+			<value>file:/C:/Users/alienBot/STM32Cube/Repository/STM32Cube_FW_F7_V1.5.1/Drivers/CMSIS/Lib/GCC</value>
+		</variable>
+		<variable>
+			<name>cms</name>
+			<value>file:/C:/Users/alienBot/STM32Cube/Repository/STM32Cube_FW_F7_V1.5.1/Drivers/CMSIS/Lib/GCC/libarm_cortexM7lfdp_math.a</value>
+		</variable>
+	</variableList>
 </projectDescription>
